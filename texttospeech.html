@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Text-to-Speech Conversion</title>
+</head>
+<body>
+	<label for="inputText">Enter text to convert to speech:</label>
+	<input type="text" id="inputText" name="inputText">
+	<button onclick="convertToSpeech()">Convert to Speech</button>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	<script>
+		function convertToSpeech() {
+			// Get the text input from the user
+			var textToConvert = $('#inputText').val();
+
+			// Call the Azure Text-to-Speech API to convert the text to speech
+			$.ajax({
+				url: "https://westus.api.cognitive.microsoft.com/sts/v1.0/issueToken",
+				type: "POST",
+				headers: {
+					"Ocp-Apim-Subscription-Key": "047d652f58a24c3fb00c03c3e6d82d2f",
+				},
+				success: function(token) {
+					$.ajax({
+						url: "https://westus.tts.speech.microsoft.com/cognitiveservices/v1",
+						type: "POST",
+						data: "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'><voice name='en-US-AriaNeural'>" + textToConvert + "</voice></speak>",
+						headers: {
+							"Authorization": "Bearer " + token,
+							"X-Microsoft-OutputFormat": "audio-16khz-32kbitrate-mono-mp3",
+							"Content-Type": "application/ssml+xml",
+							"User-Agent": "your-user-agent"
+						},
+						processData: false,
+						success: function(data) {
+							// Play the audio file in the browser
+							var audio = new Audio("data:audio/mp3;base64," + btoa(data));
+							audio.play();
+						},
+						error: function(jqXHR, textStatus, errorThrown) {
+							console.log(textStatus + ': ' + errorThrown);
+						}
+					});
+				},
+				error: function(jqXHR, textStatus, errorThrown) {
+					console.log(textStatus + ': ' + errorThrown);
+				}
+			});
+		}
+	</script>
+</body>
+</html>
